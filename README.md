@@ -1,39 +1,303 @@
-[![checks](https://github.com/ILIAS-eLearning/ILIAS/actions/workflows/checks.yml/badge.svg?branch=release_9)](https://github.com/ILIAS-eLearning/ILIAS/actions/workflows/checks.yml)
-[![Supported PHP Version](https://img.shields.io/badge/php-8.1%20%7C%208.2-8892BF.svg)](https://php.net/)
-# StudOn
+![](https://img.shields.io/badge/build-6.12.90--2-white?logo=debian&label=Debian) ![](https://img.shields.io/badge/build-11.8.6-brown?logo=mariadb&label=MariaDB) ![](https://img.shields.io/badge/build-8.2-purple?logo=php&label=PHP) ![](https://img.shields.io/badge/build-20.19.2-green?logo=node.js&label=Node.js) ![](https://img.shields.io/badge/build-9.2.0-green?logo=npm&label=npm)
 
-StudOn is FAU’s platform for online learning and course management. Students can register for courses via StudOn and access or store seminar handouts, reading lists and general information. StudOn also allows direct exchange between students and lecturers in forums, chats and Wikis. StudOn is also used for online examinations. Students can log on with their University user account: www.studon.fau.de.
+# StudOn FAUstairs
 
-Authors: 
-  * Fred Neumann
-  * Christina Fuchs <chr.fuchs@fau.de>
+StudOn FAUstairs is a customized version of FAU's StudOn platform based on ILIAS 9. It serves as a complementary instance to StudOn by providing LTI resources, such as the Lectures plugin, rather than functioning as a standalone learning management system. It is accessible at https://studon-staging.kwarc.info.
 
-# ILIAS
+The following installation procedure is based on the official [ILIAS installation documentation](https://docu.ilias.de/ilias.php?baseClass=illmpresentationgui&cmd=layout&ref_id=367&obj_id=220443#install-ilias). Note that the exact dependency versions may vary depending on your operating system and distribution.
 
-ILIAS is a powerful Open Source Learning Management System for developing and realising web-based e-learning. The software was developed to reduce the costs of using new media in education and further training and to ensure the maximum level of customer influence in the implementation of the software. ILIAS is published under the General Public Licence and free of charge.
+## Installation Dependencies
 
-### Features
-[see all features on our official website](https://www.ilias.de/en/about-ilias/) or [read our booklet](http://www.ilias.de/docu/goto_docu_file_1854_download.html)
+### MariaDB
+```
+sudo apt install mariadb-server mariadb-client
+```
 
-### Installation
+### PHP
+```
+sudo apt install ca-certificates apt-transport-https lsb-release wget gnupg
 
-Installation of ILIAS is well documented on [our official Installation manual](http://www.ilias.de/docu/goto_docu_lm_367.html) and in the documentation contained inside this repo: [/docs/configuration/install.md](/docs/configuration/install.md)
+wget -qO- https://packages.sury.org/php/apt.gpg | sudo gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
 
-### Plugins
+echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ trixie main" | sudo tee /etc/apt/sources.list.d/sury-php.list
 
-ILIAS can be extended with a lot of Plugins. You find the complete list in the [Plugin Repository](http://www.ilias.de/docu/goto.php?target=cat_1442&client_id=docu)
+sudo apt install \
+  libapache2-mode-php8.2 \
+  php8.2 \
+  php8.2-cli \
+  php8.2-common \
+  php8.2-mysql \
+  php8.2-xml \
+  php8.2-curl \
+  php8.2-mbstring \
+  php8.2-zip \
+  php8.2-gd \
+  php8.2-xsl \
+  php8.2-imagick \
+  php8.2-soap \
+  php8.2-ldap \
+  php8.2-intl
+
+sudo update-alternatives --config php
+php -v
+```
+
+### Node.js
+```
+sudo apt install nodejs
+```
+
+### Additional Dependencies
+```
+sudo apt install zip unzip maven ffmpeg git ghostscript
+```
+
+## Webserver Configuration
+### 1. Create Directories
+```
+sudo mkdir /var/www/ilias
+sudo mkdir /var/www/files
+sudo mkdir /var/www/logs
+sudo mkdir /var/www/config
+sudo mkdir /var/www/.npm
+```
+
+### 2. Set Rights
+```
+sudo chown -R www-data:www-data /var/www/ilias
+sudo chown -R www-data:www-data /var/www/files
+sudo chown -R www-data:www-data /var/www/logs
+sudo chown -R www-data:www-data /var/www/config
+sudo chown -R www-data:www-data /var/www/.npm
+```
+
+### 3. Change Apache Configuration
+```
+sudo vim /etc/apache2/sites-enabled/000-default.conf
+```
+Add the following lines:
+```
+<VirtualHost *:80>
+    ServerAdmin webmaster@example.com
+
+    DocumentRoot /var/www/ilias/
+    <Directory /var/www/ilias/>
+        Options +FollowSymLinks -Indexes
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # Possible values include: debug, info, notice, warn, error, crit,
+    # alert, emerg.
+    LogLevel warn
+
+    ErrorLog /var/log/apache2/error.log
+    CustomLog /var/log/apache2/access.log combined
+</VirtualHost>
+```
+
+### 4. Enable mod_rewrite
+```
+sudo a2enmod rewrite
+sudo systemctl restart apache2.service
+```
+
+### 5. Update php.ini file
+```
+sudo nano /etc/php/8.2/apache2/php.ini
+```
+Add or change the following lines:
+```
+; you may choose higher values for max_execution_time and memory_limit
+max_execution_time = 600
+memory_limit = 512M
+
+error_reporting = E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT ; PHP 5.4.0 and higher
+display_errors = Off
+
+; or any higher values for post_max_size and upload_max_filesize
+post_max_size = 256M
+upload_max_filesize = 256M
+
+; choose a non-zero value for session.gc_probability, otherwise old session data will not be deleted
+session.gc_probability = 1
+session.gc_divisor = 100
+session.gc_maxlifetime = 14400
+session.hash_function = 0
+session.cookie_httponly = On
+session.save_handler = files
+; If you installation is served via HTTPS also use:
+session.cookie_secure = On
+
+; for chat server
+allow_url_fopen = 1
+
+; How many GET/POST/COOKIE input variables may be accepted
+max_input_vars = 10000
+```
+Restart apache:
+```
+sudo systemctl restart apache2.service
+```
+
+## Database Configuration
+### 1. Update Config
+```
+sudo vim /etc/mysql/mariadb.conf.d/50-server.cnf
+```
+Add, uncomment or modifiy the following lines:
+```
+default-storage-engine = InnoDB
+join_buffer_size > 128K
+table_open_cache > 400
+innodb_buffer_pool_size > 2G
+character-set-server = utf8mb3
+collation-server = utf8mb3_general_ci
+```
+Restart MariaDB:
+```
+sudo systemctl restart mariadb.service
+```
+
+### 2. Create StudOn Database
+Replace `<PASSWORD>` with a password of your choice.
+```
+sudo mariadb
+
+CREATE DATABASE ilias CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE USER 'ilias'@'localhost' IDENTIFIED BY <PASSWORD>;
+GRANT LOCK TABLES on *.* TO 'ilias'@'localhost';
+GRANT ALL PRIVILEGES ON ilias.* TO 'ilias'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+## Install StudOn
+### 1. Download the GitHub Repo
+```
+cd /var/www/ilias
+sudo -u www-data git clone https://github.com/FAUstairs/StudOn.git .
+```
+
+### 2. Download Dependencies
+```
+sudo -u www-data npm clean-install --omit=dev --ignore-scripts
 
 
-### Community
+sudo mkdir -p /var/www/ilias/libs/composer/vendor
+sudo chown -R www-data:www-data /var/www/ilias/libs/composer
 
-We have a big [community](http://www.ilias.de/docu/goto.php?target=cat_1444&client_id=docu) and you can become a member of [ILIAS Society](http://www.ilias.de/docu/goto.php?target=cat_1669&client_id=docu).
-You may even join us at one of our regular [ILIAS Conferences](http://www.ilias.de/docu/goto.php?target=cat_2255&client_id=docu).
+cd /var/www/ilias
+sudo mkdir -p Services/Component/artifacts
+sudo mkdir -p Services/GlobalScreen/artifacts
+sudo chown -R www-data:www-data Services/Component/artifacts
+sudo chown -R www-data:www-data Services/GlobalScreen/artifacts
 
+sudo -u www-data composer install --no-dev
+```
 
-### Development
+### 3. Prepare and install config file
+Copy the `minimal-config.json` to `/var/www/config/ilias.json`
+```
+sudo cp /var/www/ilias/setup/minimal-config.json /var/www/config/ilias.json
+```
+Update `password`, `http path` and `contact` in `ilias.json`:
+```
+{
+    "common": {
+        "client_id": "myilias"
+    },
+    "database": {
+        "user": "ilias",
+        "password": <PASSWORD>,
+        "database": "ilias"
+    },
+    "filesystem": {
+        "data_dir": "/var/www/files/ilias"
+    },
+    "logging": {
+        "enable": true,
+        "path_to_logfile": "/var/www/logs/ilias.log",
+        "errorlog_dir": "/var/www/logs/"
+    },
+    "http": {
+        "path": "http://www.example.com"
+    },
+    "systemfolder": {
+        "contact": {
+            "firstname": "Max",
+            "lastname": "Mustermann",
+            "email": "max.mustermann@fau.de"
+        }
+    },
+    "utilities": {
+        "path_to_convert": "/usr/bin/convert"
+    },
+    "mediaobject": {
+        "path_to_ffmpeg": "/usr/bin/ffmpeg"
+    },
+    "preview": {
+        "path_to_ghostscript": "/usr/bin/gs"
+    }
+}
+```
+Install Config:
+```
+cd /var/www/ilias/
+sudo -u www-data php setup/setup.php install /var/www/config/ilias.json
+```
 
-Information on our software development processes and guidelines and ways to contribute can be found the the [development section](docs/development) of our documentation.
+## Fixes
+### Clock
+If the time displayed in the PHP configuration or the user login logs is incorrect, update the following files:
+```
+sudo nano /etc/php/8.2/apache2/php.ini
+sudo nano /etc/php/8.2/cli/php.ini
+```
+Set the following value:
+```
+date.timezone = Europe/Berlin
+```
+Update `ilias.ini.php`:
+```
+sudo vim /mnt/data/StudOn/ilias/ilias.ini.php
+```
+Set the following value:
+```
+timezone = "Europe/Berlin"
+```
+Restart Apache
+```
+sudo systemctl restart apache2
+```
 
+## LTI Setup
+### Set Consumer Default Values
+Open
+```
+cd /var/www/ilias
+sudo nano Services/LTI/classes/InternalProvider/class.ilLTIProviderObjectSettingGUI.php
+```
+Change
+```
+$tf->setValue($active_consumer->platformId);
+$tf->setValue($active_consumer->clientId);
+$tf->setValue($active_consumer->deploymentId);
+$tf->setValue($active_consumer->jku);
+$tf->setValue($active_consumer->accessTokenUrl);
+$tf->setValue($active_consumer->authenticationUrl);
+```
+Update the configuration as shown below. Replace `<PROVIDER_ADDRESS>`, `<CLIENT_ID>`, `<DEPLOYMENT_ID>`, `<JWU>`, `<ACCESS_TOKEN_URL>` and `<AUTH_URL>` with the values provided by the LTI provider:
 
-### ILIAS Root Directory
-Requests to add new files and directories in the root directory of ILIAS MUST be presented as development issues at and approved by the Jour Fixe.
+```
+$tf->setValue($active_consumer->platformId ?: <PROVIDER_ADDRESS>);
+$tf->setValue($active_consumer->clientId ?: <CLIENT_ID>);
+$tf->setValue($active_consumer->deploymentId ?: <DEPLOYMENT_ID>);
+$tf->setValue($active_consumer->jku ?: <JWU>);
+$tf->setValue($active_consumer->accessTokenUrl ?: <ACCESS_TOKEN_URL>);
+$tf->setValue($active_consumer->authenticationUrl ?: <AUTH_URL>);
+
+```
+Restart Apache:
+```
+sudo systemctl restart apache2
+```
