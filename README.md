@@ -12,6 +12,10 @@ The following installation procedure is based on the official [ILIAS installatio
 ```
 sudo apt install mariadb-server mariadb-client
 ```
+### Apache2 
+```
+sudo apt install apache2
+```
 
 ### PHP
 ```
