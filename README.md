@@ -22,7 +22,7 @@ wget -qO- https://packages.sury.org/php/apt.gpg | sudo gpg --dearmor -o /usr/sha
 echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ trixie main" | sudo tee /etc/apt/sources.list.d/sury-php.list
 
 sudo apt install \
-  libapache2-mode-php8.2 \
+  libapache2-mod-php8.2 \
   php8.2 \
   php8.2-cli \
   php8.2-common \
