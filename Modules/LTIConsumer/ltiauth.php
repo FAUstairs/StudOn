@@ -26,12 +26,13 @@ chdir("../../");
  * a valid third-party client_id param in regular initILIAS
  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = $_POST;
+    $data = array_merge($_GET, $_POST);
 } else {
     $data = $_GET;
-    if (isset($_GET['client_id'])) {
-        unset($_GET['client_id']);
-    }
+}
+
+if (isset($_GET['client_id'])) {
+    unset($_GET['client_id']);
 }
 
 require_once("Services/Init/classes/class.ilInitialisation.php");
