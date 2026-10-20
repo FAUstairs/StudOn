@@ -149,7 +149,8 @@ sudo systemctl restart apache2.service
 ```
 sudo vim /etc/mysql/mariadb.conf.d/50-server.cnf
 ```
-By default the engine of [MariaDB](https://mariadb.com/docs/server/server-usage/storage-engines/choosing-the-right-storage-engine) and [MySQL](https://dev.mysql.com/doc/refman/8.4/en/storage-engine-setting.html) is InnoDB
+By default the engine of [MariaDB](https://mariadb.com/docs/server/server-usage/storage-engines/choosing-the-right-storage-engine) and [MySQL](https://dev.mysql.com/doc/refman/8.4/en/storage-engine-setting.html) is InnoDB.
+
 Add, uncomment or modifiy the following lines:
 ```
 join_buffer_size > 128K
