@@ -3,4 +3,5 @@
 # StudOn FAUstairs
 
 StudOn FAUstairs is a customized version of FAU's StudOn platform based on ILIAS 9. It serves as a complementary instance to StudOn by providing LTI resources, such as the Lectures plugin, rather than functioning as a standalone learning management system. It is accessible at https://studon-staging.kwarc.info. 
+
 The installation document is on the [wiki page](https://github.com/FAUstairs/StudOn/wiki/Installation)
