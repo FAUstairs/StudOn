@@ -36,7 +36,8 @@ abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
     {
         $config = HTMLPurifier_Config::createDefault();
         $config->set('HTML.DefinitionID', $this->getPurifierType());
-        $config->set('HTML.DefinitionRev', 1);
+        // increased the number from 1 to 2 (to 3) in order to build a new version using my changes (ie new version number so htmlpurifier wont reuse an older cashed definition)
+        $config->set('HTML.DefinitionRev', 3);
         $config->set('Cache.SerializerPath', ilHtmlPurifierAbstractLibWrapper::_getCacheDirectory());
         $config->set('HTML.Doctype', 'XHTML 1.0 Strict');
         $config->set('HTML.AllowedElements', $this->getAllowedElements());
@@ -51,6 +52,19 @@ abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
         );
         $config->autoFinalize = true;
         if ($def = $config->maybeGetRawHTMLDefinition()) {
+
+            // adding in experimental support for a simple MathML fraction.
+            $def->addElement('math', 'Inline', 'Optional: mfrac', []);
+            $def->addElement('mfrac', false, 'Optional: mi | mn', []);
+            $def->addElement('mi', false, 'Optional: #PCDATA', []);
+            $def->addElement('mn', false, 'Optional: #PCDATA', []);
+
+            // adding in experimental support for FTML attributes
+            // Experimental preservation of FTML attributes on span elements.
+            $def->addAttribute('span', 'data-ftml-term', 'Text');
+            $def->addAttribute('span', 'data-ftml-head', 'Text');
+            $def->addAttribute('span', 'data-ftml-comp', 'Text');
+
             $def->addAttribute('a', 'target', 'Enum#_blank,_self,_target,_top');
 
             // fau: nobrElement - add nobr to the known elements of html purifier
@@ -74,6 +88,12 @@ abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
 
         $allowedElements = $this->makeElementListTinyMceCompliant($allowedElements);
         $allowedElements = $this->removeUnsupportedElements($allowedElements);
+
+        // add mathml elements to the allowed elements list so mathml can be used in questions and answers
+        $allowedElements = array_merge(
+        $allowedElements,
+        ['math', 'mfrac', 'mi', 'mn']
+    );
 
         return $allowedElements;
     }

@@ -53,7 +53,17 @@ abstract class assQuestionGUI
      * Don't ask, but I didn't find an easy fix without undoing two more
      * question types.
      */
-    public const ALLOWED_PLAIN_TEXT_TAGS = "<em>, <strong>";
+    public const ALLOWED_PLAIN_TEXT_TAGS =
+    "<em>, <strong>, <span>" .
+    "<math>, <semantics>, <annotation>, <annotation-xml>, <mprescripts>, <none>, " .
+    "<mi>, <mn>, <mo>, <mtext>, <mspace>, <ms>, <mglyph>, " .
+    "<mrow>, <a>, <mfrac>, <msqrt>, <mroot>, <mstyle>, " .
+    "<merror>, <mpadded>, <mphantom>, <mfenced>, <menclose>, " .
+    "<msub>, <msup>, <msubsup>, <munder>, <mover>, " .
+    "<munderover>, <mmultiscripts>, " .
+    "<mtable>, <mtr>, <mtd>, " .
+    "<mstack>, <mlongdiv>, <msgroup>, <msrow>, " .
+    "<mscarries>, <mscarry>, <msline>, <maction>";
 
     private const RETURN_AFTER_EXISTING_WITH_ORIGINAL_SAVE = -1;
     private const RETURN_AFTER_EXISTING_SAVE = 0;
