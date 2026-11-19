@@ -24,6 +24,19 @@
  */
 abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
 {
+    private const MATHML_ELEMENTS = [
+    'math', 'semantics', 'annotation', 'annotation-xml',
+    'mprescripts', 'none',
+    'mi', 'mn', 'mo', 'mtext', 'mspace', 'ms', 'mglyph',
+    'mrow', 'mfrac', 'msqrt', 'mroot', 'mstyle',
+    'merror', 'mpadded', 'mphantom', 'mfenced', 'menclose',
+    'msub', 'msup', 'msubsup', 'munder', 'mover',
+    'munderover', 'mmultiscripts',
+    'mtable', 'mtr', 'mtd',
+    'mstack', 'mlongdiv', 'msgroup', 'msrow',
+    'mscarries', 'mscarry', 'msline', 'maction',
+    ];
+    
     protected function getPurifierType(): string
     {
         return 'assessment';
@@ -36,8 +49,8 @@ abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
     {
         $config = HTMLPurifier_Config::createDefault();
         $config->set('HTML.DefinitionID', $this->getPurifierType());
-        // increased the number from 1 to 2 (to 3) in order to build a new version using my changes (ie new version number so htmlpurifier wont reuse an older cashed definition)
-        $config->set('HTML.DefinitionRev', 3);
+        // increased the number from 1 to 2 (to 3 then 4) in order to build a new version using my changes (ie new version number so htmlpurifier wont reuse an older cashed definition)
+        $config->set('HTML.DefinitionRev', 4);
         $config->set('Cache.SerializerPath', ilHtmlPurifierAbstractLibWrapper::_getCacheDirectory());
         $config->set('HTML.Doctype', 'XHTML 1.0 Strict');
         $config->set('HTML.AllowedElements', $this->getAllowedElements());
@@ -53,11 +66,15 @@ abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
         $config->autoFinalize = true;
         if ($def = $config->maybeGetRawHTMLDefinition()) {
 
-            // adding in experimental support for a simple MathML fraction.
-            $def->addElement('math', 'Inline', 'Optional: mfrac', []);
-            $def->addElement('mfrac', false, 'Optional: mi | mn', []);
-            $def->addElement('mi', false, 'Optional: #PCDATA', []);
-            $def->addElement('mn', false, 'Optional: #PCDATA', []);
+            // adding in generalized mathml element support
+            foreach (self::MATHML_ELEMENTS as $element) {
+               $def->addElement(
+                $element,
+                'Inline',
+                'Inline',
+                []
+             );
+            }
 
             // adding in experimental support for FTML attributes
             // Experimental preservation of FTML attributes on span elements.
@@ -92,8 +109,8 @@ abstract class ilAssHtmlPurifier extends ilHtmlPurifierAbstractLibWrapper
         // add mathml elements to the allowed elements list so mathml can be used in questions and answers
         $allowedElements = array_merge(
         $allowedElements,
-        ['math', 'mfrac', 'mi', 'mn']
-    );
+        self::MATHML_ELEMENTS
+);
 
         return $allowedElements;
     }

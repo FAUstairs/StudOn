@@ -48,22 +48,28 @@ abstract class assQuestionGUI
 
     protected const HAS_SPECIAL_QUESTION_COMMANDS = false;
 
+    // MathML elements included in the santization allowances list.
+    private const ALLOWED_MATHML_TAGS =
+    "<math>, <semantics>, <annotation>, <annotation-xml>, " .
+    "<mi>, <mn>, <mo>, <mtext>, <mspace>, <ms>, <mglyph>, " .
+    "<mrow>, <mfrac>, <msqrt>, <mroot>, <mstyle>, " .
+    "<merror>, <mpadded>, <mphantom>, <mfenced>, <menclose>, " .
+    "<msub>, <msup>, <msubsup>, <munder>, <mover>, " .
+    "<munderover>, <mmultiscripts>, <mprescripts>, <none>, " .
+    "<mtable>, <mtr>, <mtd>, " .
+    "<mstack>, <mlongdiv>, <msgroup>, <msrow>, " .
+    "<mscarries>, <mscarry>, <msline>, <maction>";
+
     /**
      * sk - 12.05.2023: This const is also used in ilKprimChoiceWizardInputGUI.
      * Don't ask, but I didn't find an easy fix without undoing two more
      * question types.
      */
+    // Extended this list with mathML tags
     public const ALLOWED_PLAIN_TEXT_TAGS =
-    "<em>, <strong>, <span>" .
-    "<math>, <semantics>, <annotation>, <annotation-xml>, <mprescripts>, <none>, " .
-    "<mi>, <mn>, <mo>, <mtext>, <mspace>, <ms>, <mglyph>, " .
-    "<mrow>, <a>, <mfrac>, <msqrt>, <mroot>, <mstyle>, " .
-    "<merror>, <mpadded>, <mphantom>, <mfenced>, <menclose>, " .
-    "<msub>, <msup>, <msubsup>, <munder>, <mover>, " .
-    "<munderover>, <mmultiscripts>, " .
-    "<mtable>, <mtr>, <mtd>, " .
-    "<mstack>, <mlongdiv>, <msgroup>, <msrow>, " .
-    "<mscarries>, <mscarry>, <msline>, <maction>";
+    "<em>, <strong>, " .
+    "<span>, <a>, " .
+    self::ALLOWED_MATHML_TAGS;
 
     private const RETURN_AFTER_EXISTING_WITH_ORIGINAL_SAVE = -1;
     private const RETURN_AFTER_EXISTING_SAVE = 0;

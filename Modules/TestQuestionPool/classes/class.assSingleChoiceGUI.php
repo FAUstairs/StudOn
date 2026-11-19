@@ -714,8 +714,8 @@ class assSingleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScoringA
         }
 
         foreach ($choice['answer'] as $index => $answertext) {
-            //im removing this temporarily as an expirament 
-            $answertext = htmlentities($answertext);
+            //im removing this as this line turns markup into plain text 
+            //$answertext = htmlentities($answertext);
             $picturefile = $choice['imagename'][$index] ?? null;
             $file_org_name = $_FILES['choice']['name']['image'][$index] ?? '';
             $file_temp_name = $_FILES['choice']['tmp_name']['image'][$index] ?? '';
